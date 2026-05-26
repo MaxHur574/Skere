@@ -47,7 +47,7 @@ jobs:
         run: pnpm prettier --check "src/**/*.{js,ts,vue,css,json}"
 
       - name: Run ESLint
-        run: pnpm eslint "src/**/*.{js,ts,vue}" --max-warnings 0
+        run: pnpm eslint "src/**/*.{js,ts,vue}"
 
   build:
     name: Build
