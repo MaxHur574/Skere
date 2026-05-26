@@ -13,10 +13,9 @@ export default defineConfig([
       "no-unused-vars": "warn",
     },
   },
+  ...pluginVue.configs["flat/essential"],
   {
-    ...pluginVue.configs["flat/essential"],
     rules: {
-      ...pluginVue.configs["flat/essential"].rules,
       "vue/multi-word-component-names": "off",
     },
   },
