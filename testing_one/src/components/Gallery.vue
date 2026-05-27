@@ -157,6 +157,8 @@ import Window from "./Window.vue";
 import lunaImg from "../assets/gallery/foto_luna.jpg";
 import camaraImg from "../assets/gallery/camara_seguridad_0314.jpg";
 import calendarioImg from "../assets/gallery/octubre_calendario.jpg";
+import creadorImg from "../assets/gallery/creador_bloqueado.jpg";
+import scanEvidenciaImg from "../assets/gallery/scan_evidencia_A.jpg";
 
 const emit = defineEmits(["close", "minimize"]);
 
@@ -227,18 +229,7 @@ const albums = ref([
         res: "1280×720",
         note: "Cámara interior — pasillo norte.\nRegistro automático: 03:14 AM\nHora coincidente con la primera desaparición registrada el 14/10/2020.\nFigura detectada al fondo del pasillo.",
       },
-      {
-        id: 4,
-        name: "creador_bloqueado.jpg",
-        emoji: "👤",
-        color: "#050505",
-        date: "14/05/2024",
-        size: "3.2 MB",
-        res: "1920×1080",
-        locked: true,
-        lockCode: "0314",
-        note: "Acceso restringido. Se requiere código.",
-      },
+      
     ],
   },
   {
@@ -260,11 +251,12 @@ const albums = ref([
         id: 6,
         name: "scan_evidencia_A.jpg",
         emoji: "🔍",
+        img: scanEvidenciaImg,
         color: "#0a1000",
         date: "12/03/2022",
         size: "4.2 MB",
         res: "2480×3508",
-        note: "Evidencia — Caso 0047.",
+        note: "Evidencia — Casos de desapariciones.",
       },
     ],
   },
@@ -274,14 +266,17 @@ const albums = ref([
     label: "Eliminadas recientemente",
     photos: [
       {
-        id: 7,
-        name: "foto_antigua.jpg",
+        id: 4,
+        name: "creador_bloqueado.jpg",
         emoji: "👤",
-        color: "#0d0d0d",
-        date: "14/05/2024 03:19",
-        size: "1.8 MB",
-        res: "800×600",
-        note: "Eliminado por: mh_admin — 14/05/2024 03:19",
+        img: creadorImg,
+        color: "#050505",
+        date: "14/05/2024",
+        size: "3.2 MB",
+        res: "1920×1080",
+        locked: true,
+        lockCode: "0314",
+        note: "Acceso restringido. Se requiere código.",
       },
     ],
   },
