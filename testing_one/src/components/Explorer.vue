@@ -133,6 +133,7 @@
         v-if="showInvPrivada"
         @close="showInvPrivada = false"
         @minimize="showInvPrivada = false"
+        @decryptor-unlocked="$emit('decryptor-unlocked')"
       />
     </Teleport>
 
@@ -145,7 +146,7 @@ import Window from './Window.vue';
 import { useSystem, PASSWORDS } from '../store/system.js';
 import Investigacionprivada from './minigames/Investigacionprivada.vue';
 
-const emit = defineEmits(['close', 'minimize']);
+const emit = defineEmits(['close', 'minimize', 'decryptor-unlocked']);
 const system = useSystem();
 
 // ── Investigación Privada ─────────────────────────────────────────────────────
