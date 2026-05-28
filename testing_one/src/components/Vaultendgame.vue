@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div class="endgame-root">
+    <div class="endgame-root" ref="rootRef">
 
       <!-- ══ FASE 1: Bóveda abierta con el archivo ══ -->
       <Transition name="phase-fade">
@@ -55,17 +55,14 @@
             <span class="rs-filename">📄 IDENTIDAD_CREADOR.txt</span>
           </div>
           <div class="err-terminal">
-            <!-- Líneas de carga ya mostradas -->
             <div v-for="(line, i) in readLines" :key="'rl' + i" class="rs-line" :class="line.type">{{ line.text }}</div>
 
-            <!-- ERROR animado -->
             <div class="err-block" :class="{ visible: errorVisible }">
               <div class="err-title">ERROR</div>
               <div class="err-sub">IDENTIDAD NO ENCONTRADA</div>
               <div class="err-divider" />
             </div>
 
-            <!-- Datos del jugador -->
             <div class="player-data" :class="{ visible: playerDataVisible }">
               <div class="pd-separator">══════════════════════════════</div>
               <div class="pd-title">HISTORIAL DEL JUGADOR</div>
@@ -110,7 +107,6 @@
                 v-for="(msg, i) in visibleChatLines"
                 :key="i"
                 class="ac-msg"
-                :class="{ 'ac-msg-delay': i > 0 }"
               >
                 <span class="ac-sender">ADMIN</span>
                 <span class="ac-text">{{ msg }}</span>
@@ -141,6 +137,9 @@
 
       <!-- ══ OVERLAY DE GLITCH ══ -->
       <div v-if="glitching" class="glitch-overlay" />
+
+      <!-- ══ SCANLINES ACELERADAS (activo durante secuencia del cursor) ══ -->
+      <div v-if="scanlinesActive" class="scanlines-fast-overlay" />
 
       <!-- ══ FADE A NEGRO ══ -->
       <Transition name="blackout">
@@ -186,12 +185,18 @@ import gsap from 'gsap'
 
 const emit = defineEmits(['done'])
 
+// ── Refs de DOM ───────────────────────────────────────────────────────────────
+const rootRef        = ref(null)
+const chatWindowRef  = ref(null)
+const transmitBtnRef = ref(null)
+
 // ── Estado de fases ───────────────────────────────────────────────────────────
 const phase           = ref('vault')
 const fileSelected    = ref(false)
 const showAdminChat   = ref(false)
 const showGhostCursor = ref(false)
 const glitching       = ref(false)
+const scanlinesActive = ref(false)
 const fadeToBlack     = ref(false)
 const showFinale      = ref(false)
 
@@ -210,12 +215,10 @@ const readLines = [
 const errorVisible      = ref(false)
 const playerDataVisible = ref(false)
 
-// Datos reales del jugador
 const realTime    = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 const hostname    = window.location.hostname || 'EQUIPO_LOCAL'
 const displayHost = hostname === 'localhost' || hostname === '' ? 'EQUIPO_LOCAL' : hostname.toUpperCase()
 
-// Efecto de "tipeo" para los datos del jugador
 const typedHostname = ref('')
 const typedTime     = ref('')
 const typedStatus   = ref('')
@@ -237,11 +240,9 @@ function typeText(target, text, delay = 0) {
 }
 
 // ── Fase 4: Chat ──────────────────────────────────────────────────────────────
-const chatWindowRef   = ref(null)
-const transmitBtnRef  = ref(null)
 const visibleChatLines = ref([])
-const btnHovered      = ref(false)
-const btnPulse        = ref(false)
+const btnHovered       = ref(false)
+const btnPulse         = ref(false)
 
 const chatMessages = [
   'No estabas buscando a Valeria.',
@@ -269,14 +270,12 @@ function openIdentidadFile() {
   phase.value = 'reading'
   showCursor.value = true
 
-  // Animar líneas de lectura
   readLines.forEach((line, i) => {
     setTimeout(() => {
       visibleReadLines.value.push(line)
     }, i * 700)
   })
 
-  // Tras las líneas → pasar a fase error
   setTimeout(() => {
     phase.value = 'error'
     showCursor.value = false
@@ -285,19 +284,16 @@ function openIdentidadFile() {
 }
 
 async function animateErrorPhase() {
-  // Pequeño delay antes del ERROR
   await sleep(500)
   errorVisible.value = true
 
   await sleep(1400)
   playerDataVisible.value = true
 
-  // Tipear datos con delay escalonado
   await typeText(typedHostname, displayHost, 300)
   await typeText(typedTime, realTime, 200)
   await typeText(typedStatus, 'vinculado al lote actual', 200)
 
-  // Tras mostrar datos → abrir chat
   await sleep(1200)
   launchAdminChat()
 }
@@ -307,47 +303,60 @@ async function launchAdminChat() {
 
   await sleep(600)
 
-  // Mostrar mensajes uno a uno
   for (let i = 0; i < chatMessages.length; i++) {
     await sleep(i === 0 ? 400 : 1100)
     visibleChatLines.value.push(chatMessages[i])
   }
 
-  // Pulso en el botón
   await sleep(800)
   btnPulse.value = true
 
-  // Iniciar secuencia del cursor fantasma
   await sleep(600)
   startGhostCursor()
 }
 
+// ── CURSOR FANTASMA — secuencia completa con resistencia y jalón ──────────────
 async function startGhostCursor() {
   showGhostCursor.value = true
+  scanlinesActive.value = true
 
-  // Posición inicial: lejos del botón
-  cursorX.value = window.innerWidth * 0.2
-  cursorY.value = window.innerHeight * 0.3
+  // Posición inicial: esquina superior izquierda, lejos del botón
+  cursorX.value = window.innerWidth * 0.15
+  cursorY.value = window.innerHeight * 0.22
 
   await sleep(300)
-
-  // Obtener posición del botón
   await nextTick()
+
   const btn = transmitBtnRef.value
   if (!btn) { onTransmitClick(); return }
 
-  const rect = btn.getBoundingClientRect()
-  const targetX = rect.left + rect.width / 2 - 8
-  const targetY = rect.top + rect.height / 2 - 8
+  const rect   = btn.getBoundingClientRect()
+  const targetX = rect.left + rect.width  / 2 - 8
+  const targetY = rect.top  + rect.height / 2 - 8
 
-  // Mover el cursor "titubeante" — primero se aleja, luego va al botón
-  const proxy = { x: cursorX.value, y: cursorY.value }
+  const proxy = { x: cursorX.value, y: cursorY.value, skew: 0 }
+  const root  = rootRef.value
+
+  // ── FASE A: Inclinación progresiva de la pantalla a lo largo de toda la secuencia
+  gsap.to(proxy, {
+    duration: 5.2,
+    skew: 4,
+    ease: 'power2.in',
+    onUpdate: () => {
+      if (root) root.style.transform = `skewX(${proxy.skew}deg)`
+    },
+  })
+
+  // ── FASE B: El cursor HUYE — corre en dirección opuesta al botón ─────────────
+  // El botón está abajo-derecha, así que huye hacia arriba-izquierda
+  const fleeX = window.innerWidth  * 0.72
+  const fleeY = window.innerHeight * 0.12
 
   gsap.to(proxy, {
-    duration: 0.8,
-    x: window.innerWidth * 0.6,
-    y: window.innerHeight * 0.7,
-    ease: 'power1.inOut',
+    duration: 0.85,
+    x: fleeX,
+    y: fleeY,
+    ease: 'power3.out',
     onUpdate: () => {
       cursorX.value = proxy.x
       cursorY.value = proxy.y
@@ -356,73 +365,177 @@ async function startGhostCursor() {
 
   await sleep(900)
 
-  // Temblor / resistencia
+  // ── FASE C: Frena — como si algo lo detuviera a la fuerza ────────────────────
   gsap.to(proxy, {
-    duration: 0.4,
-    x: window.innerWidth * 0.45,
-    y: window.innerHeight * 0.5,
-    ease: 'power2.out',
+    duration: 0.55,
+    x: fleeX * 0.65,
+    y: fleeY * 1.5,
+    ease: 'power3.out',
     onUpdate: () => {
       cursorX.value = proxy.x
       cursorY.value = proxy.y
     },
   })
 
-  await sleep(500)
+  await sleep(580)
 
-  // Movimiento final imparable hacia el botón
+  // ── FASE D: Temblor / tensión — vibración rápida en su sitio ─────────────────
+  const shakeOriginX = proxy.x
+  const shakeOriginY = proxy.y
+
+  // 14 sacudidas con amplitud decreciente (como luchando pero perdiendo)
+  for (let i = 0; i < 14; i++) {
+    await sleep(52)
+    const amp = 22 - i * 1.2   // disminuye gradualmente
+    cursorX.value = shakeOriginX + (Math.random() - 0.5) * amp * 2
+    cursorY.value = shakeOriginY + (Math.random() - 0.5) * amp
+  }
+
+  // Volver al origen exacto antes del jalón
+  cursorX.value = shakeOriginX
+  cursorY.value = shakeOriginY
+  proxy.x = shakeOriginX
+  proxy.y = shakeOriginY
+
+  await sleep(180)
+
+  // ── FASE E: Corrupción de texto en el chat mientras se pierde el control ─────
+  corruptChat()
+
+  await sleep(350)
+
+  // ── FASE F: Primera atracción — movimiento medio hacia el target ──────────────
   gsap.to(proxy, {
-    duration: 1.2,
-    x: targetX,
-    y: targetY,
-    ease: 'power3.inOut',
+    duration: 0.55,
+    x: shakeOriginX + (targetX - shakeOriginX) * 0.42,
+    y: shakeOriginY + (targetY - shakeOriginY) * 0.38,
+    ease: 'power1.in',
     onUpdate: () => {
       cursorX.value = proxy.x
       cursorY.value = proxy.y
     },
+  })
+
+  await sleep(520)
+
+  // ── FASE G: Jalón inevitable — aceleración brutal e imparable ────────────────
+  gsap.to(proxy, {
+    duration: 0.75,
+    x: targetX,
+    y: targetY,
+    ease: 'power4.in',
+    onUpdate: () => {
+      cursorX.value = proxy.x
+      cursorY.value = proxy.y
+      // La inclinación se dispara en el tramo final
+      const t = gsap.getProperty(proxy, 'progress') || 0
+      if (root) {
+        const extraSkew = Math.min(proxy.skew + t * 3.5, 8)
+        root.style.transform = `skewX(${extraSkew}deg)`
+      }
+    },
     onComplete: () => {
-      // Click automático
-      setTimeout(onTransmitClick, 200)
+      // Limpiar efectos y disparar el click
+      scanlinesActive.value = false
+      if (root) {
+        gsap.to(root, { duration: 0.15, skewX: 0, clearProps: 'transform' })
+      }
+      setTimeout(onTransmitClick, 120)
     },
   })
 }
 
+// ── Corrupción de caracteres individuales del chat ────────────────────────────
+function corruptChat() {
+  const textEls = document.querySelectorAll('.ac-text')
+
+  textEls.forEach(el => {
+    const original = el.textContent
+    const chars = [...original]
+
+    // Envolver cada carácter en su propio span
+    el.innerHTML = chars
+      .map(c => `<span class="corrupt-char">${c === ' ' ? '&nbsp;' : c}</span>`)
+      .join('')
+
+    el.querySelectorAll('.corrupt-char').forEach((span, i) => {
+      const dx    = (Math.random() - 0.5) * 22
+      const dy    = (Math.random() - 0.5) * 14
+      const rot   = (Math.random() - 0.5) * 30
+      const delay = i * 0.022
+
+      gsap.to(span, {
+        duration: 0.45,
+        x: dx,
+        y: dy,
+        rotation: rot,
+        opacity: Math.random() * 0.45 + 0.25,
+        color: Math.random() > 0.65 ? '#ff1111' : undefined,
+        ease: 'power2.out',
+        delay,
+      })
+    })
+  })
+
+  // La ventana entera también se sacude
+  const chatWin = chatWindowRef.value
+  if (chatWin) {
+    gsap.to(chatWin, {
+      duration: 0.07,
+      x: 'random(-7, 7)',
+      y: 'random(-5, 5)',
+      repeat: 14,
+      yoyo: true,
+      ease: 'none',
+      onComplete: () => {
+        gsap.set(chatWin, { x: 0, y: 0 })
+      },
+    })
+  }
+}
+
+// ── Click en el botón de transmisión ─────────────────────────────────────────
 async function onTransmitClick() {
   showGhostCursor.value = false
-  btnPulse.value = false
+  scanlinesActive.value = false
+  btnPulse.value  = false
   btnHovered.value = false
 
-  // Glitch fuerte
+  // Limpiar cualquier inclinación residual
+  if (rootRef.value) {
+    gsap.to(rootRef.value, { duration: 0.1, skewX: 0, clearProps: 'transform' })
+  }
+
+  // Glitch fuerte en ráfagas
   for (let i = 0; i < 6; i++) {
-    await sleep(60)
+    await sleep(55)
     glitching.value = !glitching.value
   }
   glitching.value = true
 
-  await sleep(300)
+  await sleep(280)
 
   // Parpadeo rápido
-  for (let i = 0; i < 8; i++) {
-    await sleep(80)
+  for (let i = 0; i < 10; i++) {
+    await sleep(70)
     glitching.value = !glitching.value
   }
   glitching.value = false
 
-  await sleep(200)
+  await sleep(180)
 
   // Fade a negro
-  fadeToBlack.value = true
+  fadeToBlack.value  = true
   showAdminChat.value = false
 
   await sleep(1800)
 
-  // Mostrar finale
+  // Pantalla final
   showFinale.value = true
   phase.value = ''
 
   await sleep(600)
 
-  // Revelar líneas del finale
   for (let i = 0; i <= finaleLines.length + 1; i++) {
     await sleep(900)
     visibleFinaleLines.value = i + 1
@@ -434,7 +547,7 @@ function sleep(ms) {
   return new Promise(r => setTimeout(r, ms))
 }
 
-// Bloquear el mouse del jugador durante la secuencia del cursor
+// Bloquear el mouse del jugador durante la secuencia del cursor fantasma
 function suppressMouseEvents(e) {
   if (showGhostCursor.value) {
     e.stopPropagation()
@@ -462,6 +575,8 @@ onUnmounted(() => {
   z-index: 20000;
   font-family: 'Courier New', monospace;
   overflow: hidden;
+  /* La inclinación la aplica GSAP directamente en style.transform */
+  transform-origin: center center;
 }
 
 /* ── Transiciones de fase ── */
@@ -807,35 +922,67 @@ onUnmounted(() => {
   position: fixed;
   pointer-events: none;
   z-index: 22000;
-  font-size: 20px;
+  font-size: 22px;
   color: #cc3333;
-  text-shadow: 0 0 8px #cc3333;
+  text-shadow: 0 0 10px #cc3333, 0 0 20px rgba(204,51,51,0.5);
   transform: translate(-50%, -50%);
   transition: none;
-  filter: drop-shadow(0 0 6px #cc3333);
+  filter: drop-shadow(0 0 8px #cc3333);
   font-family: monospace;
+  will-change: left, top;
 }
 
-/* ══ GLITCH OVERLAY ══ */
+/* ══ CORRUPCIÓN DE CARACTERES ══ */
+/* GSAP anima directamente los spans con transform inline */
+:deep(.corrupt-char) {
+  display: inline-block;
+}
+
+/* ══ SCANLINES ACELERADAS ══ */
+/* Se activa como overlay independiente vía v-if durante la secuencia del cursor */
+.scanlines-fast-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 21800;
+  /* Líneas más gruesas (3px) y rojas tenues */
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(204, 51, 51, 0.07) 2px,
+    rgba(204, 51, 51, 0.07) 5px
+  );
+  /* Animación de desplazamiento rápido — da sensación de aceleración */
+  animation: scanlines-rush 0.09s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes scanlines-rush {
+  from { background-position: 0 0; }
+  to   { background-position: 0 10px; }
+}
+
+/* ══ OVERLAY DE GLITCH ══ */
 .glitch-overlay {
   position: fixed;
   inset: 0;
   z-index: 21500;
   background: repeating-linear-gradient(
     0deg,
-    rgba(204,51,51,0.04) 0px,
-    rgba(204,51,51,0.04) 1px,
+    rgba(204,51,51,0.05) 0px,
+    rgba(204,51,51,0.05) 1px,
     transparent 1px,
     transparent 4px
   );
-  animation: glitch-anim 0.08s steps(2) infinite;
+  animation: glitch-anim 0.06s steps(2) infinite;
   mix-blend-mode: screen;
 }
 @keyframes glitch-anim {
   0%   { transform: translate(0, 0) skewX(0deg); }
-  25%  { transform: translate(-4px, 2px) skewX(-2deg); filter: hue-rotate(30deg); }
-  50%  { transform: translate(4px, -2px) skewX(2deg); }
-  75%  { transform: translate(-2px, -1px) skewX(1deg); filter: hue-rotate(-20deg); }
+  25%  { transform: translate(-5px, 3px) skewX(-3deg); filter: hue-rotate(40deg); }
+  50%  { transform: translate(5px, -3px) skewX(3deg); filter: hue-rotate(-15deg); }
+  75%  { transform: translate(-3px, -2px) skewX(1.5deg); filter: hue-rotate(20deg); }
   100% { transform: translate(0, 0); }
 }
 
