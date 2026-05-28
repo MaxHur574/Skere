@@ -112,9 +112,15 @@
             </div>
 
             <!-- Foto desbloqueada (antes estaba bloqueada) -->
-            <div v-else-if="lightboxPhoto.locked && unlockedPhotos[lightboxPhoto.id]" class="lightbox-img" :style="{ background: lightboxPhoto.color }">
-              <div class="lb-unlocked-content">
-                <div class="lb-unlocked-icon">👤</div>
+            <div
+              v-else-if="lightboxPhoto.locked && unlockedPhotos[lightboxPhoto.id]"
+              class="lightbox-img"
+              :style="lightboxPhoto.img
+                ? { backgroundImage: `url(${lightboxPhoto.img})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: lightboxPhoto.color }"
+            >
+              <!-- Overlay narrativo encima de la imagen real -->
+              <div class="lb-unlocked-overlay">
                 <div class="lb-unlocked-desc">Rostro parcial — sin identificación oficial.</div>
                 <div class="lb-unlocked-sub">Creador del sistema. Oscuro. Serio.</div>
               </div>
@@ -742,4 +748,25 @@ function nextPhoto() {
 .lb-nav:hover { background: #222; color: #ccc; }
 
 .lb-counter { font-size: 11px; color: #444; }
+/* Overlay narrativo sobre la foto desbloqueada */
+.lb-unlocked-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lb-unlocked-desc {
+  font-size: 12px;
+  color: #aaa;
+  font-family: 'Courier New', monospace;
+}
+.lb-unlocked-sub {
+  font-size: 10px;
+  color: #555;
+}
 </style>

@@ -11,6 +11,9 @@ importers:
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
       interactjs:
         specifier: ^1.10.27
         version: 1.10.27
@@ -735,6 +738,9 @@ packages:
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
+
+  howler@2.2.4:
+    resolution: {integrity: sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==}
 
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
@@ -1893,6 +1899,8 @@ snapshots:
   gsap@3.15.0: {}
 
   hookable@5.5.3: {}
+
+  howler@2.2.4: {}
 
   ignore@5.3.2: {}
 

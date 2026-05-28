@@ -66,8 +66,12 @@ export const useSystem = defineStore("system", () => {
     }
   }
 
-  function markBootRead() { setFlag("bootRead"); }
-  function markLogErrorRead() { setFlag("logErrorRead"); }
+  function markBootRead() {
+    setFlag("bootRead");
+  }
+  function markLogErrorRead() {
+    setFlag("logErrorRead");
+  }
 
   const level1Progress = computed(() => {
     const keys = [
@@ -94,63 +98,98 @@ export const useSystem = defineStore("system", () => {
   }
 
   // ── Watches narrativos ───────────────────────────────────────────────────────
-  watch(() => flags.value.readUrgenteLeer, (v) => {
-    if (!v) return;
-    triggerEvent("glitch", { intensity: "low", duration: 400 });
-    triggerEvent("notification", { message: "Actividad de archivo registrada." });
-  });
+  watch(
+    () => flags.value.readUrgenteLeer,
+    (v) => {
+      if (!v) return;
+      triggerEvent("glitch", { intensity: "low", duration: 400 });
+      triggerEvent("notification", {
+        message: "Actividad de archivo registrada.",
+      });
+    },
+  );
 
-  watch(() => flags.value.readNoMires, (v) => {
-    if (!v) return;
-    triggerEvent("flicker", { times: 3, interval: 200 });
-    triggerEvent("scanlines", { duration: 3000 });
-    triggerEvent("sound", { clip: "static_noise", volume: 0.3 });
-    triggerEvent("notification", { message: "Error de integridad: no_mires.txt — acceso completado." });
-  });
+  watch(
+    () => flags.value.readNoMires,
+    (v) => {
+      if (!v) return;
+      triggerEvent("flicker", { times: 3, interval: 200 });
+      triggerEvent("scanlines", { duration: 3000 });
+      triggerEvent("sound", { clip: "static_noise", volume: 0.3 });
+      triggerEvent("notification", {
+        message: "Error de integridad: no_mires.txt — acceso completado.",
+      });
+    },
+  );
 
-  watch(() => flags.value.readNotaAlMargen, (v) => {
-    if (!v) return;
-    triggerEvent("glitch", { intensity: "low", duration: 300 });
-  });
+  watch(
+    () => flags.value.readNotaAlMargen,
+    (v) => {
+      if (!v) return;
+      triggerEvent("glitch", { intensity: "low", duration: 300 });
+    },
+  );
 
-  watch(() => flags.value.foundOctubreTxt, (v) => {
-    if (!v) return;
-    triggerEvent("glitch", { intensity: "medium", duration: 600 });
-    triggerEvent("sound", { clip: "heartbeat", volume: 0.2 });
-  });
+  watch(
+    () => flags.value.foundOctubreTxt,
+    (v) => {
+      if (!v) return;
+      triggerEvent("glitch", { intensity: "medium", duration: 600 });
+      triggerEvent("sound", { clip: "heartbeat", volume: 0.2 });
+    },
+  );
 
-  watch(() => flags.value.unlockedInvestigacion, (v) => {
-    if (!v) return;
-    triggerEvent("flicker", { times: 5, interval: 150 });
-    triggerEvent("glitch", { intensity: "high", duration: 1200 });
-    triggerEvent("scanlines", { duration: 5000 });
-    triggerEvent("sound", { clip: "unlock_horror", volume: 0.5 });
-    triggerEvent("notification", { message: "Acceso concedido. Bienvenido, investigador." });
-    currentLevel.value = 2;
-  });
+  watch(
+    () => flags.value.unlockedInvestigacion,
+    (v) => {
+      if (!v) return;
+      triggerEvent("flicker", { times: 5, interval: 150 });
+      triggerEvent("glitch", { intensity: "high", duration: 1200 });
+      triggerEvent("scanlines", { duration: 5000 });
+      triggerEvent("sound", { clip: "unlock_horror", volume: 0.5 });
+      triggerEvent("notification", {
+        message: "Acceso concedido. Bienvenido, investigador.",
+      });
+      currentLevel.value = 2;
+    },
+  );
 
-  watch(() => flags.value.unlockedDecryptor, (v) => {
-    if (!v) return;
-    triggerEvent("flicker", { times: 4, interval: 120 });
-    triggerEvent("glitch", { intensity: "high", duration: 1500 });
-    triggerEvent("notification", { message: "Módulo DESENCRIPTADOR instalado." });
-    currentLevel.value = 3;
-  });
+  watch(
+    () => flags.value.unlockedDecryptor,
+    (v) => {
+      if (!v) return;
+      triggerEvent("flicker", { times: 4, interval: 120 });
+      triggerEvent("glitch", { intensity: "high", duration: 1500 });
+      triggerEvent("notification", {
+        message: "Módulo DESENCRIPTADOR instalado.",
+      });
+      currentLevel.value = 3;
+    },
+  );
 
-  watch(() => flags.value.vaultFinalUnlocked, (v) => {
-    if (!v) return;
-    triggerEvent("flicker", { times: 6, interval: 100 });
-    triggerEvent("glitch", { intensity: "high", duration: 2000 });
-    triggerEvent("scanlines", { duration: 6000 });
-    triggerEvent("notification", { message: "Bóveda principal desbloqueada. Acceso total concedido." });
-    currentLevel.value = 4;
-  });
+  watch(
+    () => flags.value.vaultFinalUnlocked,
+    (v) => {
+      if (!v) return;
+      triggerEvent("flicker", { times: 6, interval: 100 });
+      triggerEvent("glitch", { intensity: "high", duration: 2000 });
+      triggerEvent("scanlines", { duration: 6000 });
+      triggerEvent("notification", {
+        message: "Bóveda principal desbloqueada. Acceso total concedido.",
+      });
+      currentLevel.value = 4;
+    },
+  );
 
-  watch(atmosphereEvents, (events) => {
-    if (events.length > 30) {
-      atmosphereEvents.value = events.filter((e) => !e.consumed);
-    }
-  }, { deep: true });
+  watch(
+    atmosphereEvents,
+    (events) => {
+      if (events.length > 30) {
+        atmosphereEvents.value = events.filter((e) => !e.consumed);
+      }
+    },
+    { deep: true },
+  );
 
   return {
     openApps,
